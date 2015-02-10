@@ -1,0 +1,898 @@
+	.file	"vsm.c"
+	.comm	memory,2048,32
+	.globl	acc
+	.bss
+	.align 2
+	.type	acc, @object
+	.size	acc, 2
+acc:
+	.zero	2
+	.globl	iC
+	.align 4
+	.type	iC, @object
+	.size	iC, 4
+iC:
+	.zero	4
+	.globl	iR
+	.align 4
+	.type	iR, @object
+	.size	iR, 4
+iR:
+	.zero	4
+	.globl	opCode
+	.align 4
+	.type	opCode, @object
+	.size	opCode, 4
+opCode:
+	.zero	4
+	.globl	operand
+	.align 4
+	.type	operand, @object
+	.size	operand, 4
+operand:
+	.zero	4
+	.section	.rodata
+.LC0:
+	.string	"*** Initializing VSM ***"
+.LC1:
+	.string	"%hx"
+	.text
+	.globl	main
+	.type	main, @function
+main:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	$.LC0, %edi
+	call	puts
+	jmp	.L2
+.L5:
+	movl	-4(%rbp), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	testw	%ax, %ax
+	je	.L8
+.L3:
+	addl	$1, -4(%rbp)
+.L2:
+	movl	-4(%rbp), %eax
+	cltq
+	addq	%rax, %rax
+	leaq	memory(%rax), %rdx
+	movl	$.LC1, %eax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	__isoc99_scanf
+	cmpl	$-1, %eax
+	jne	.L5
+	jmp	.L4
+.L8:
+	nop
+.L4:
+	movl	$0, iC(%rip)
+	movl	iC(%rip), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %eax
+	movl	%eax, iR(%rip)
+	jmp	.L6
+.L7:
+	movl	iR(%rip), %eax
+	movzwl	%ax, %eax
+	movl	%eax, %edi
+	call	decode
+	movl	iC(%rip), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %eax
+	movl	%eax, iR(%rip)
+.L6:
+	movl	iR(%rip), %eax
+	testl	%eax, %eax
+	jne	.L7
+	movl	$0, %eax
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	main, .-main
+	.section	.rodata
+.LC2:
+	.string	"%d\n"
+.LC3:
+	.string	"\n*** Terminating VSM ***"
+.LC4:
+	.string	"Illegal opCode."
+	.text
+	.globl	decode
+	.type	decode, @function
+decode:
+.LFB1:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movl	%edi, %eax
+	movw	%ax, -20(%rbp)
+	movzwl	-20(%rbp), %eax
+	andl	$61440, %eax
+	movl	%eax, opCode(%rip)
+	movzwl	-20(%rbp), %eax
+	andl	$2048, %eax
+	movl	%eax, -4(%rbp)
+	sarl	$11, -4(%rbp)
+	movzwl	-20(%rbp), %eax
+	andl	$2047, %eax
+	movl	%eax, operand(%rip)
+	movl	opCode(%rip), %eax
+	cmpl	$28672, %eax
+	je	.L18
+	cmpl	$28672, %eax
+	jg	.L27
+	cmpl	$12288, %eax
+	je	.L14
+	cmpl	$12288, %eax
+	jg	.L28
+	cmpl	$4096, %eax
+	je	.L12
+	cmpl	$8192, %eax
+	je	.L13
+	testl	%eax, %eax
+	je	.L43
+	jmp	.L10
+.L28:
+	cmpl	$20480, %eax
+	je	.L16
+	cmpl	$24576, %eax
+	je	.L17
+	cmpl	$16384, %eax
+	je	.L15
+	jmp	.L10
+.L27:
+	cmpl	$45056, %eax
+	je	.L22
+	cmpl	$45056, %eax
+	jg	.L29
+	cmpl	$36864, %eax
+	je	.L20
+	cmpl	$40960, %eax
+	je	.L21
+	cmpl	$32768, %eax
+	je	.L19
+	jmp	.L10
+.L29:
+	cmpl	$53248, %eax
+	je	.L24
+	cmpl	$53248, %eax
+	jg	.L30
+	cmpl	$49152, %eax
+	je	.L23
+	jmp	.L10
+.L30:
+	cmpl	$57344, %eax
+	je	.L25
+	cmpl	$61440, %eax
+	je	.L26
+	jmp	.L10
+.L12:
+	cmpl	$0, -4(%rbp)
+	je	.L32
+	movl	operand(%rip), %eax
+	movw	%ax, acc(%rip)
+	jmp	.L33
+.L32:
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movw	%ax, acc(%rip)
+.L33:
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L13:
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	movzwl	acc(%rip), %edx
+	cltq
+	movw	%dx, memory(%rax,%rax)
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L14:
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	cltq
+	addq	%rax, %rax
+	leaq	memory(%rax), %rdx
+	movl	$.LC1, %eax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	__isoc99_scanf
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L15:
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %edx
+	movl	$.LC2, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L16:
+	movl	operand(%rip), %edx
+	movl	opCode(%rip), %eax
+	movl	-4(%rbp), %ecx
+	movl	%ecx, %esi
+	movl	%eax, %edi
+	call	asmd
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L17:
+	movl	operand(%rip), %edx
+	movl	opCode(%rip), %eax
+	movl	-4(%rbp), %ecx
+	movl	%ecx, %esi
+	movl	%eax, %edi
+	call	asmd
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L18:
+	movl	operand(%rip), %edx
+	movl	opCode(%rip), %eax
+	movl	-4(%rbp), %ecx
+	movl	%ecx, %esi
+	movl	%eax, %edi
+	call	asmd
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L19:
+	movl	operand(%rip), %edx
+	movl	opCode(%rip), %eax
+	movl	-4(%rbp), %ecx
+	movl	%ecx, %esi
+	movl	%eax, %edi
+	call	asmd
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L20:
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddI
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L21:
+	movzwl	acc(%rip), %eax
+	testw	%ax, %ax
+	jns	.L34
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddI
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L34:
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L22:
+	movzwl	acc(%rip), %eax
+	testw	%ax, %ax
+	jne	.L36
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddI
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L36:
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L23:
+	movl	$0, iR(%rip)
+	call	dump
+	movl	$.LC3, %edi
+	call	puts
+	movl	$1, %edi
+	call	exit
+.L24:
+	movl	operand(%rip), %edx
+	movl	opCode(%rip), %eax
+	movl	-4(%rbp), %ecx
+	movl	%ecx, %esi
+	movl	%eax, %edi
+	call	asmd
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L25:
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	movl	%eax, -8(%rbp)
+	jmp	.L40
+.L44:
+	nop
+.L40:
+	movl	-8(%rbp), %eax
+	cltq
+	addq	%rax, %rax
+	leaq	memory(%rax), %rdx
+	addl	$1, -8(%rbp)
+	movl	$.LC1, %eax
+	movq	%rdx, %rsi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	__isoc99_scanf
+	movl	-8(%rbp), %eax
+	subl	$1, %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	testw	%ax, %ax
+	jne	.L44
+	nop
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	jmp	.L9
+.L26:
+	movl	-4(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddS
+	movl	operand(%rip), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	operand(%rip), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	movl	%eax, -8(%rbp)
+	jmp	.L41
+.L42:
+	movl	-8(%rbp), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %eax
+	addl	$1, -8(%rbp)
+	movl	%eax, %edi
+	call	putchar
+.L41:
+	movl	-8(%rbp), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	testw	%ax, %ax
+	jne	.L42
+	movl	$10, %edi
+	call	putchar
+	movl	iC(%rip), %eax
+	addl	$1, %eax
+	movl	%eax, iC(%rip)
+	nop
+	jmp	.L9
+.L10:
+	movl	$.LC4, %edi
+	call	puts
+	call	dump
+	movl	$.LC3, %edi
+	call	puts
+	movl	$1, %edi
+	call	exit
+.L43:
+	nop
+.L9:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE1:
+	.size	decode, .-decode
+	.section	.rodata
+.LC5:
+	.string	"Illegal address for data."
+	.text
+	.globl	illAddD
+	.type	illAddD, @function
+illAddD:
+.LFB2:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	%edi, -4(%rbp)
+	cmpl	$2047, -4(%rbp)
+	jg	.L46
+	cmpl	$1023, -4(%rbp)
+	jg	.L45
+.L46:
+	movl	$.LC5, %edi
+	call	puts
+	call	dump
+	movl	$.LC3, %edi
+	call	puts
+	movl	$1, %edi
+	call	exit
+.L45:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE2:
+	.size	illAddD, .-illAddD
+	.section	.rodata
+	.align 8
+.LC6:
+	.string	"Illegal address for instructions."
+	.text
+	.globl	illAddI
+	.type	illAddI, @function
+illAddI:
+.LFB3:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	%edi, -4(%rbp)
+	cmpl	$0, -4(%rbp)
+	js	.L49
+	cmpl	$1023, -4(%rbp)
+	jle	.L48
+.L49:
+	movl	$.LC6, %edi
+	call	puts
+	call	dump
+	movl	$.LC3, %edi
+	call	puts
+	movl	$1, %edi
+	call	exit
+.L48:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE3:
+	.size	illAddI, .-illAddI
+	.section	.rodata
+.LC7:
+	.string	"Illegal address specifier"
+	.text
+	.globl	illAddS
+	.type	illAddS, @function
+illAddS:
+.LFB4:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	movl	%edi, -4(%rbp)
+	cmpl	$0, -4(%rbp)
+	je	.L51
+	movl	$.LC7, %edi
+	call	puts
+	call	dump
+	movl	$.LC3, %edi
+	call	puts
+	movl	$1, %edi
+	call	exit
+.L51:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE4:
+	.size	illAddS, .-illAddS
+	.section	.rodata
+.LC8:
+	.string	"Division by zero."
+	.text
+	.globl	zeroDiv
+	.type	zeroDiv, @function
+zeroDiv:
+.LFB5:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	$.LC8, %edi
+	call	puts
+	call	dump
+	movl	$.LC3, %edi
+	call	puts
+	movl	$1, %edi
+	call	exit
+	.cfi_endproc
+.LFE5:
+	.size	zeroDiv, .-zeroDiv
+	.section	.rodata
+.LC9:
+	.string	"Unknow real number operation."
+	.text
+	.globl	asmd
+	.type	asmd, @function
+asmd:
+.LFB6:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	movl	%edi, -20(%rbp)
+	movl	%esi, -24(%rbp)
+	movl	%edx, -28(%rbp)
+	cmpl	$0, -24(%rbp)
+	je	.L55
+	movl	-28(%rbp), %eax
+	movl	%eax, -4(%rbp)
+	jmp	.L56
+.L55:
+	movl	-28(%rbp), %eax
+	movl	%eax, %edi
+	call	illAddD
+	movl	-28(%rbp), %eax
+	movl	%eax, %edx
+	shrl	$31, %edx
+	addl	%edx, %eax
+	sarl	%eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %eax
+	movl	%eax, -4(%rbp)
+.L56:
+	cmpl	$20480, -20(%rbp)
+	jne	.L57
+	movl	-4(%rbp), %eax
+	movl	%eax, %edx
+	movzwl	acc(%rip), %eax
+	addl	%edx, %eax
+	movw	%ax, acc(%rip)
+	jmp	.L54
+.L57:
+	cmpl	$24576, -20(%rbp)
+	jne	.L59
+	movzwl	acc(%rip), %eax
+	movl	%eax, %edx
+	movl	-4(%rbp), %eax
+	movl	%edx, %ecx
+	subw	%ax, %cx
+	movl	%ecx, %eax
+	movw	%ax, acc(%rip)
+	jmp	.L54
+.L59:
+	cmpl	$28672, -20(%rbp)
+	jne	.L60
+	movl	-4(%rbp), %eax
+	movl	%eax, %edx
+	movzwl	acc(%rip), %eax
+	imull	%edx, %eax
+	movw	%ax, acc(%rip)
+	jmp	.L54
+.L60:
+	cmpl	$0, -4(%rbp)
+	jne	.L61
+	call	zeroDiv
+	jmp	.L54
+.L61:
+	cmpl	$32768, -20(%rbp)
+	jne	.L62
+	movzwl	acc(%rip), %eax
+	cwtl
+	movl	%eax, %edx
+	sarl	$31, %edx
+	idivl	-4(%rbp)
+	movw	%ax, acc(%rip)
+	jmp	.L54
+.L62:
+	cmpl	$53248, -20(%rbp)
+	jne	.L63
+	movzwl	acc(%rip), %eax
+	cwtl
+	movl	%eax, %edx
+	sarl	$31, %edx
+	idivl	-4(%rbp)
+	movl	%edx, %eax
+	movw	%ax, acc(%rip)
+	jmp	.L54
+.L63:
+	movl	$.LC9, %eax
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+.L54:
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE6:
+	.size	asmd, .-asmd
+	.section	.rodata
+.LC10:
+	.string	"\nREGISTERS:"
+	.align 8
+.LC11:
+	.string	"accumulator            0x%.4hx\n"
+	.align 8
+.LC12:
+	.string	"instructionCounter     0x%.4x\n"
+	.align 8
+.LC13:
+	.string	"instructionRegister    0x%.4x\n\n"
+	.align 8
+.LC14:
+	.string	"opCode                 0x%.1x\n"
+	.align 8
+.LC15:
+	.string	"operand                0x%.4x\n\n"
+	.align 8
+.LC16:
+	.string	"CODE:\n     0  1  2  3  4  5  6  7  8  9"
+.LC17:
+	.string	"%.4d "
+.LC18:
+	.string	"%.2hx %.2hx "
+.LC19:
+	.string	"...\n"
+	.align 8
+.LC20:
+	.string	"DATA:\n     0  1  2  3  4  5  6  7  8  9"
+.LC21:
+	.string	"..."
+	.text
+	.globl	dump
+	.type	dump, @function
+dump:
+.LFB7:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$48, %rsp
+	movl	$.LC10, %edi
+	call	puts
+	movzwl	acc(%rip), %eax
+	movswl	%ax, %edx
+	movl	$.LC11, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	iC(%rip), %eax
+	leal	(%rax,%rax), %edx
+	movl	$.LC12, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	iR(%rip), %edx
+	movl	$.LC13, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	opCode(%rip), %edx
+	movl	$.LC14, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	operand(%rip), %edx
+	movl	$.LC15, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	$.LC16, %edi
+	call	puts
+	movl	$0, -36(%rbp)
+	jmp	.L65
+.L68:
+	movl	-36(%rbp), %eax
+	leal	(%rax,%rax), %edx
+	movl	$.LC17, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	-36(%rbp), %eax
+	movl	%eax, -32(%rbp)
+	jmp	.L66
+.L67:
+	movl	-32(%rbp), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %eax
+	movl	%eax, -24(%rbp)
+	movl	-24(%rbp), %eax
+	sarl	$8, %eax
+	movl	%eax, -20(%rbp)
+	movl	-24(%rbp), %eax
+	andl	$255, %eax
+	movl	%eax, -16(%rbp)
+	movl	$.LC18, %eax
+	movl	-16(%rbp), %edx
+	movl	-20(%rbp), %ecx
+	movl	%ecx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	addl	$1, -32(%rbp)
+.L66:
+	movl	-36(%rbp), %eax
+	addl	$5, %eax
+	cmpl	-32(%rbp), %eax
+	jg	.L67
+	movl	$10, %edi
+	call	putchar
+	addl	$5, -36(%rbp)
+.L65:
+	cmpl	$45, -36(%rbp)
+	jle	.L68
+	movl	$.LC19, %edi
+	call	puts
+	movl	$.LC20, %edi
+	call	puts
+	movl	$512, -36(%rbp)
+	jmp	.L69
+.L72:
+	movl	-36(%rbp), %eax
+	leal	(%rax,%rax), %edx
+	movl	$.LC17, %eax
+	movl	%edx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	movl	-36(%rbp), %eax
+	movl	%eax, -28(%rbp)
+	jmp	.L70
+.L71:
+	movl	-28(%rbp), %eax
+	cltq
+	movzwl	memory(%rax,%rax), %eax
+	movzwl	%ax, %eax
+	movl	%eax, -12(%rbp)
+	movl	-12(%rbp), %eax
+	sarl	$8, %eax
+	movl	%eax, -8(%rbp)
+	movl	-12(%rbp), %eax
+	andl	$255, %eax
+	movl	%eax, -4(%rbp)
+	movl	$.LC18, %eax
+	movl	-4(%rbp), %edx
+	movl	-8(%rbp), %ecx
+	movl	%ecx, %esi
+	movq	%rax, %rdi
+	movl	$0, %eax
+	call	printf
+	addl	$1, -28(%rbp)
+.L70:
+	movl	-36(%rbp), %eax
+	addl	$5, %eax
+	cmpl	-28(%rbp), %eax
+	jg	.L71
+	movl	$10, %edi
+	call	putchar
+	addl	$5, -36(%rbp)
+.L69:
+	cmpl	$557, -36(%rbp)
+	jle	.L72
+	movl	$.LC21, %edi
+	call	puts
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE7:
+	.size	dump, .-dump
+	.ident	"GCC: (Ubuntu/Linaro 4.6.3-1ubuntu5) 4.6.3"
+	.section	.note.GNU-stack,"",@progbits

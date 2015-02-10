@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0058)http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=3716 -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US"><head profile="http://gmpg.org/xfn/11"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Assignment 2</title>
+<meta name="description" content="Please Read That Number For Me! (20 points) Due 1:15 p.m. Monday, September 15 IMPORTANT! This is an individual assignment. You may discuss broad issues of interpretation and understanding and general approaches to a solution. However, conversion to a specific […]">
+<link rel="stylesheet" href="./Assignment 2_files/style.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="./Assignment 2_files/layout.css" type="text/css" media="screen, projection">
+<!--[if lte IE 8]><link rel="stylesheet" href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/wp-content/themes/thesis_18/lib/css/ie.css?071812-145340" type="text/css" media="screen, projection" /><![endif]-->
+<link rel="stylesheet" href="./Assignment 2_files/custom.css" type="text/css" media="screen, projection">
+<link rel="canonical" href="./Assignment 2_files/Assignment 2.html">
+<link rel="alternate" type="application/rss+xml" title="CPSC 275: Introduction to Computer Systems RSS Feed" href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?feed=rss2">
+<link rel="pingback" href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/xmlrpc.php">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/xmlrpc.php?rsd">
+<meta name="robots" content="noindex,follow">
+<link rel="stylesheet" id="bbp-default-css" href="./Assignment 2_files/bbpress.css" type="text/css" media="screen">
+<link rel="stylesheet" id="byob_plugin_styles-css" href="./Assignment 2_files/byob-custom.css" type="text/css" media="all">
+<script type="text/javascript" src="./Assignment 2_files/tw-sack.min.js"></script>
+	<script type="text/javascript">
+	// ajax_login_widget settings
+	var alw_timeout = 0;
+	var alw_redirectOnLogin = '';
+
+	// constants
+	var alw_base_uri = 'http://turing.cs.trincoll.edu/~pyoon/cpsc275';
+	var alw_success = '1';
+	var alw_failure = '0';
+
+	</script>
+	<script type="text/javascript" src="./Assignment 2_files/ajax_login_widget.js"></script>
+<link type="text/css" rel="stylesheet" href="./Assignment 2_files/easy-chart-builder.css"><link rel="stylesheet" href="./Assignment 2_files/style(1).css" type="text/css" media="screen"></head>
+<body class="custom assignment-2">
+<div id="container">
+<div id="page">
+<div class="thesis-nav-menu"><ul id="menu-everyone" class="menu"><li id="menu-item-382" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-382"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/">CPSC 275: Introduction to Computer Systems</a></li>
+</ul></div>	<div id="header">
+		<p id="logo"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275">CPSC 275: Introduction to Computer Systems</a></p>
+		<p id="tagline">Fall 2014</p>
+	</div>
+<div class="thesis-nav-menu"><ul id="menu-membersonly" class="menu"><li id="menu-item-1552" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1552"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=1549">Announcements</a></li>
+<li id="menu-item-720" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-720"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=46">Syllabus</a></li>
+<li id="menu-item-2309" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2309"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=2305">Schedule</a></li>
+<li id="menu-item-1563" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1563"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=1561">Resources</a></li>
+<li id="menu-item-947" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-947"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=916">Results</a></li>
+<li id="menu-item-393" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-393"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=142">Grades</a></li>
+<li id="menu-item-1577" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1577"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=57">Upload</a></li>
+<li id="menu-item-3743" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-3743"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=3741">Solution</a></li>
+<li id="menu-item-3790" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-3790"><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=3626">Q&amp;A</a></li>
+</ul></div>	<div id="content_box">
+		<div id="content">
+
+<a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=3716&print=1" title="Print This Page" rel="nofollow"><img class="WP-PrintIcon" src="./Assignment 2_files/print.gif" alt="Print This Page" title="Print This Page" style="border: 0px;"></a>&nbsp;<a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=3716&print=1" title="Print This Page" rel="nofollow">Print This Page</a>
+			<div class="post_box top" id="post-3716">
+				<div class="headline_area">
+					<h1>Assignment 2</h1>
+					<p class="headline_meta"></p>
+				</div>
+				<div class="format_text">
+<h3>Please Read That Number For Me! (20 points)</h3>
+<h4>Due 1:15 p.m. Monday, September 15</h4>
+<p></p>
+<blockquote><p><strong>IMPORTANT!</strong> This is an individual assignment. You may discuss broad issues of interpretation and understanding and general approaches to a solution. However, conversion to a specific solution or to program code must be your own work.  The assignment is expected to be your work, designed and coded by you alone.  If you need help, please consult with your instructor or TAs.  Specific policies are outlined in <strong><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/?page_id=3031">Academic Honesty in Computing</a></strong>. </p></blockquote>
+<p>Write a C program <strong>spell.c</strong> to spell out numbers into their equivalent English text. For example, the number 2014 is read in English as “two thousand fourteen.” </p>
+<p><strong>Input</strong>: The input consists of one or more positive integers. Each number appears on a separate line and is smaller than a million. You may assume that the input is correct, that is, you do not have check for errors in the input data.</p>
+<p><em>Sample Input</em></p>
+<pre>100
+1
+99999
+2014
+</pre>
+<p><strong>Output</strong>: The output should contain a sorted list of the numbers with their English equivalent phrases.</p>
+<p><em>Sample Output</em></p>
+<pre>1: one
+100: one hundred
+2014: two thousand fourteen
+99999: ninety nine thousand nine hundred ninety nine
+</pre>
+<h4>Programming Notes</h4>
+<ol>
+<li>Note that <tt>scanf</tt>() returns the value <tt>EOF</tt> (defined in <tt>stdio.h</tt>) if the end of input is reached. Type ‘<tt>man scanf</tt>‘ for details.
+</li><li>Compile your program with
+<p></p><pre>$ gcc -o prog prog.c</pre>
+<p>
+where <tt>prog.c</tt> is the name of your source code. Your program <strong>must</strong> conform to the ANSI C Standard, that is, do not compile your program with such flags supporting the C99 standard as <tt>-std=c99</tt> or <tt>-std=gnu99</tt>.</p>
+</li><li>Run your program with
+<p></p><pre>$ ./prog &lt; data.in</pre>
+<p>
+where <tt>data.in</tt> is your input file to the program.  The <tt>&lt;</tt> shell operator <em>redirects</em> the content of the given input file to the standard input.  To do this, you need first to create an input data file using a text editor before running your program. Create a text file and enter a positive number.  Save the file as <tt>data.in</tt>. Run your program with the command given above. </p>
+</li><li>Make sure that your program does not prompt for user input.
+</li></ol>
+<h4>Documentation</h4>
+<ol>
+<li>File Comments: Every source file (.h and .c) should have a high-level comment at the top describing the file's contents, and should include purpose of the program, your name and the date. For example:
+<pre>/*
+ * Program: hello.c 
+ * Purpose: Displays a friendly greeting to students in CPSC 275.
+ * Author:  Peter Yoon
+ * Date:    9/3/2014
+ */
+</pre>
+</li><li>Function Comments: Every function (in both the .h and the .c files) should have a comment describing what function does, what its parameter values are, and what values it returns. For example:
+<pre>/*
+ * Function: factorial
+ * Purpose:  Computes the factorial of a positive number based on the formula:
+ *    n! = 1 * 2 * 3 * ... n
+ *
+ * Parameters:
+ *    n: a positive number
+ *
+ * Returns: the factorial of n
+ */
+</pre>
+</li></ol>
+<h4>Handin</h4>
+<p>Upload your source code (.c) to the course website by 1:15 PM on Sep. 15.</p>
+				</div>
+			</div>
+		</div>
+
+		<div id="sidebars">
+			<div id="sidebar_1" class="sidebar">
+				<ul class="sidebar_list">
+<li class="widget userLoginWiget_widget_sidebar" id="user-login-wiget"><h3>Welcome: yuxuan</h3><form name="logoutform" id="logoutform" action="http://turing.cs.trincoll.edu/~pyoon/cpsc275/wp-login.php?action=logout&redirect_to=http://turing.cs.trincoll.edu/~pyoon/cpsc275/index.php" method="post">
+<ul>
+<!--
+	<li>Name : <strong>yuxuan li</strong></li>
+	<li>E-mail : <a href="mailto:yuxuan.li@trincoll.edu">yuxuan.li@trincoll.edu</a></li>
+	<li>URL : </li>
+	<li><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/wp-admin/index.php">Admin Page</a></li>
+-->
+	<li><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/wp-admin/post-new.php">Post Article</a></li>
+	<li><a href="http://turing.cs.trincoll.edu/~pyoon/cpsc275/wp-login.php?action=logout&redirect_to=http%3A%2F%2Fturing.cs.trincoll.edu%2F%7Epyoon%2Fcpsc275%2Findex.php&_wpnonce=4e1c7b6d8f">LogOut</a></li></ul>
+</form>
+
+	    </li>				</ul>
+			</div>
+		</div>
+	</div>
+	<div id="footer">
+		<center><img src="./Assignment 2_files/TrinityLogo.gif" height="61" width="112"></center>	</div>
+</div>
+</div>
+<!--[if lte IE 8]>
+<div id="ie_clear"></div>
+<![endif]-->
+
+</body></html>

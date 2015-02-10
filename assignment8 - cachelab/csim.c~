@@ -1,0 +1,326 @@
+/*
+ * File: csim.c
+ * Purpose: This program implements a cache simulator.
+ * Author: Yuxuan Li
+ * Date: 11/9/2014
+ */
+
+#include "cachelab.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <getopt.h>
+
+/* 
+ * cache-simulator data structure
+ *  In eache line, valid is the valid bit, tag is the tag bits,
+ *  clock restarts as 0 when a line is accessed, otherwise incrementing.
+ */
+struct line{
+	int valid;
+	int tag;
+	int clock;
+};
+typedef struct line Line;
+typedef Line* Set;
+typedef Set* Cache;
+
+/* macro state for the return values of updateCache function */
+#define HIT 1
+#define MISS 2
+#define MISS_HIT 3
+#define MISS_EVICTION 4
+#define MISS_EVICTION_HIT 5
+#define HIT_HIT 6
+
+/* 
+ * global variables
+ *  s - number of set index bits, E - associativity, b - number of block bits
+ *  hit/miss/eviction - global counter of cache hit/miss/eviction activity
+ *  vf - verbose flag
+ *  fp - file pointer to the trace files
+ *  cache - our cache
+ */
+int s, E, b;
+int hit = 0, miss = 0, eviction = 0;
+int vf = 0;
+FILE *fp;
+Cache cache;
+
+/* 
+ * function prototypes
+ *  readlines - read the trace file line by line, then calls update
+ *  updateCache - updates cache and global variables hit/miss/eviction
+ *  setClock - update the clocks for lines in the corresponding set of an address
+ *  findLRU - loop through the given set and find the Least Recently Used line
+ *  getSeti - masks a given address to get set index
+ *  getTag - shifts a given address to get tag bits
+ *  printUsageInfo - prints usage information
+ */
+void readlines(FILE *fp, Cache cache);
+int updateCache(Set *cur_setp, char mode, int tag);
+void setClock(Set *cur_setp, int k);
+int findLRU(Set *cur_setp);
+int getSeti(long int address, int s, int b);
+int getTag(long int address, int s, int b);
+void printUsageInfo(void);
+//void printSummary(int hit, int miss, int eviction);
+
+int main(int argc, char *argv[])
+{
+
+	int i = 0, r;
+	/* set global variables with the given option arguments*/
+	while ((r = getopt(argc, argv, "hvs:E:b:t:")) != -1) {
+		switch(r) {
+			case 'h':        //optional
+				printUsageInfo();
+				break;
+			case 'v':        //optional
+				vf = 1;
+				break;
+			case 's':
+				i++;
+				s = atoi(optarg);
+				break;
+			case 'E':
+				i++;
+				E = atoi(optarg);
+				break;
+			case 'b':
+				i++;
+				b = atoi(optarg);
+				break;
+			case 't':
+				i++;
+				fp = fopen(optarg,"r");
+				break;
+		}
+	}
+	
+	if (i < 4) {      //not enough information
+		printf("Missing options/arguments.\n");
+		exit(1);
+	}
+	
+	/* 
+	 * malloc cache in heap
+	 *  cache is an array of S sets. Each set points to an array of lines.
+	 */
+	int S = 2 << s;     //S - number of sets
+	cache = (Set *) malloc(sizeof(Set) * S);
+	int k;
+	for(k=0; k<S; k++)
+		cache[k] = (Line *) malloc(sizeof(Line) * E);
+	
+	/* call readlines to read the file line by line */
+	readlines(fp,cache);
+	
+	/* print hits/misses/evictions information */
+    printSummary(hit, miss, eviction);
+    return 0;
+}
+
+/*
+ * Function: readlines
+ * Purpose: Read the trace file line by line, then calls update to update Cache
+ *          and global variables. Receives the return integer from update and 
+ *          prints out cache activity information under verbose mode.
+ * Parameters: File pointer, cache
+ */
+void readlines(FILE *fp, Cache cache) {
+	char buf[100];
+	int i = 0;
+	char mode, size;
+	long int address;
+	int seti, tag;
+	
+	char c;
+	while ( (c = fgetc(fp)) != EOF) {
+		if (c != '\n') buf[i++] = c;
+		
+		if (c == '\n') {              //when buf gets a full line
+			i = 0;                    //reset i for next line
+			if (buf[0] == ' ') {      //skip I lines
+				/* reads from buf and update mode, set index, tag, size*/
+				sscanf(buf, " %c %lx,%c", &mode, &address, &size);
+				mode = buf[1];
+				seti = getSeti(address, s, b);
+				tag = getTag(address, s, b);
+				
+				/* 
+				 * calls updateCache to analize cache activity with the corres-
+				 *  ponding set of the address, mode, and tag
+				 */
+				int result = 0;
+				result = updateCache(&cache[seti], mode, tag);
+				
+				/* 
+				 * under verbose mode, print out nessesary information
+				 * according to the return value of updateCache.
+				 */
+				if (vf == 1) {
+					printf("%c %lx,%c", mode, address, size);
+					switch (result) {
+						case 1:
+							printf(" hit\n");
+							break;
+						case 2:
+							printf(" miss\n");
+							break;
+						case 3:
+							printf(" miss hit\n");
+							break;
+						case 4:
+							printf(" miss eviction\n");
+							break;
+						case 5:
+							printf(" miss eviction hit\n");
+							break;
+						case 6:
+							printf(" hit hit\n");
+							break;
+					}
+				}
+			}			
+		}
+	}
+}
+
+/*
+ * Function: updateCache
+ * Purpose: Receives information from readlines and updates Cache as well as
+ *          global variables.
+ * Parameters: a pointer for the current set, mode, tag
+ * Return: returns HIT/MISS/MISS_HIT/MISS_EVICTION/MISS_EVICTION_HIT/HIT_HIT
+ */
+int updateCache(Set *cur_setp, char mode, int tag){
+	int k;
+	
+	Set cur_set = *cur_setp;
+	
+	/* loop through this set and see if there's a hit */
+	for(k=0; k<E; k++){
+		//hit
+		if (cur_set[k].tag == tag && cur_set[k].valid == 1) {
+			hit++;                    //increment hit times
+			setClock(cur_setp, k);    //update the clock for each line
+			if (mode == 'M') {        //if mode is M then there follows a hit
+				hit++;
+				return HIT_HIT;
+			}
+			return HIT;               //otherwise it's just one hit
+		}
+	}
+	
+	/* if not hit, loop through this set and see if there's an empty line */
+	for(k=0; k<E; k++){
+		//miss - cold miss
+		if (cur_set[k].valid == 0) {
+			miss++;
+			cur_set[k].tag = tag;     //bring in the line
+			cur_set[k].valid = 1;     //make the line accessble
+			setClock(cur_setp, k);    //update the clock for each line
+			if (mode == 'M') {        //if mode is M then there follows a hit
+				hit++;
+				return MISS_HIT;
+			}
+			return MISS;              //otherwise it's just one miss
+		}
+	}
+	
+	/* 
+	 * if no hit or cold miss occurs, we need to evict a line and bring in the
+	 *  new one
+	 */
+	//eviction
+	miss++;
+	eviction++;
+	//find the index of the least recently used line in this set
+	int lru = findLRU(cur_setp);
+	cur_set[lru].tag = tag;           //bring in the new block
+	cur_set[lru].valid = 1;           //make the line accessble
+	setClock(cur_setp, lru);          //update the clock for each line
+	if (mode == 'M') {                //if mode is M then there follows a hit
+		hit++;
+		return MISS_EVICTION_HIT;
+	}
+	else return MISS_EVICTION;        //otherwise it's miss plus eviction
+	
+}
+
+/*
+ * Function: setClock
+ * Purpose: updates the clocks of lines in the given set
+ * Parameters: a set pointer, the index of the accessed line
+ */
+void setClock(Set *cur_setp, int access){
+	Set cur_set = *cur_setp;
+	int i;
+	for(i=0; i<E; i++) {
+		//restart the clock of the accessed line
+		if (i==access) cur_set[i].clock = 0;
+		//all other clocks are incremented
+		else cur_set[i].clock++;        
+	}
+}
+
+/* 
+ * Function: findLRU
+ * Purpose: find the index of the least recently used line in the set
+ * Parameters: a set pointer
+ * Return: the index of the LRU line
+ */
+int findLRU(Set *cur_setp){
+	Set cur_set = *cur_setp;
+	int i, max=0;
+	for(i=0; i<E; i++){ 
+		if (cur_set[i].clock > cur_set[max].clock)
+			max = i;
+	}
+	return max;
+}
+
+/*
+ * Function: getSeti
+ * Purpose: fine the set index in the address using mask
+ * Parameters: address, number of set index bits, number of block bits
+ * Return: the set index
+ */ 
+int getSeti(long int address, int s, int b){
+	address >>= b;
+	long int mask = 0x1;
+	int i;
+	for(i=0; i<s-1; i++)
+		mask = (mask << 1) + 0x1;
+	return address & mask;
+}
+
+/* Function: getTag
+ * Purpose: find the tag in the address by shifting the address
+ * Parameters: address, number of set index bits, number of block bits
+ * Return: the tag
+ */
+int getTag(long int address, int s, int b){
+	address >>= (s+b);
+	return address;
+}
+
+/* 
+void printUsageInfo(void){
+	printf("Usage: ./csim-ref [-hv] -s <s> -E <E> -b <b> -t <tracefile>\n");
+	printf("    -h: Optional help flag that prints usage info\n");
+	printf("    -v: Optional verbose flag that displays trace info\n");
+	printf("    -s <s>: Number of set index bits(S=2^s is the number of sets)\n");
+	printf("    -E <E>: Associativity(number of lines per set)\n");
+	printf("    -b <b>: Number of block bits(B=2^b is the block size)\n");
+	printf("    -t <tracefile>: Name of the valgrind trace to replay\n");
+}
+
+/*
+void printSummary(int hit, int miss, int eviction){
+	printf("hits:%d ", hit);
+	printf("misses:%d ", miss);
+	printf("evictions:%d\n", eviction);
+}
+*/

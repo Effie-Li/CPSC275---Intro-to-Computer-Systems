@@ -1,0 +1,13 @@
+File: p3-54.txt
+Author: Yuxuan Li
+Date: 10/10/2014
+
+
+int decode2(int x, int y, int z){
+	
+	int d = y-z;
+	int a = d;
+	a<<=31;
+	a>>=31;
+	return (d*x)^a;
+}

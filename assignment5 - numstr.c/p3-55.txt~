@@ -1,0 +1,55 @@
+File: p3-55.txt
+Author: Yuxuan Li
+Date: 10/10/2014
+
+
+	As indicated by the function prototype, x is an int, and y is a long long 
+int.
+	In performing signed multiplication on integers, the signed bit will affect 
+the product.
+	Thus, we sign-extend x and denote the 32 bits of its signed bit as x_high32,
+this is done in line 4 of the asm code.
+	Let x_low32 denote x, then x = x_high32 * (2^32) + x_low32.
+	Let y_low32 denote the low 32 bits of y, stored at (%ebp+16).Let y_high32 
+denote the high 32 bits of y, stored at (%ebp+20). Then:
+	y = y_high32 * (2^32) + y_low32.
+	Let prod_low32 denote the low 32 bits of x*y, and prod_high32 the high 32 
+bits of x*y.
+	
+	x * y (signed) = ((x_high32 * (2^32) + x_low32) 
+					  * (y_high32 * (2^32) + y_low32)) 
+					  % (2^64)
+				   = (x_high32 * (2^32)) * (y_high32 * (2^32))			...e1
+				   	 + (x_high32 * (2^32)) * y_low32					...e2
+				   	 + x_low32 * (y_high32 * (2^32))					...e3
+				   	 + x_low32 * y_low32								...e4
+
+	We're looking for (x*y) % (2^64). So e1 becomes 0.
+	e2 is done on line 8 and the result is stored in %ebx.
+	e3 is done on line 6 and the result is stored in %ecx.
+	On line 9 %ecx becomes e2 + e3.
+	e4 is done on line 10. It is done by unsigned x_low32 * y_low32 because it 
+yields the same lower 32 bit pattern, and stores the higher 32 bits in %edx.
+	Line 11 adds e2 and e3 to %edx since e2 and e3 affects the high 32 bits of 
+the product.
+	Now we have prod_high32 in %edx, and prod_low32 in %eax.
+	Line 12, 13, 14 stores prod_low32 in (dest), and prod_high32 in (dest+4).
+
+
+asm annotation:
+
+	dest at %ebp+8, x at %ebp+12, y at %ebp+16 (y is long long int)
+1.		movl	16(%ebp), %esi		#moves y_low32 into %esi
+2.		movl	12(%ebp), %eax		#moves x into %eax
+3.		movl	%eax, %edx			#moves x into %edx
+4.		sarl	$31, %edx			#%edx = x_high32
+5.		movl	20(%ebp), %ecx		#moves y_high32 into %ecx
+6.		imull	%eax, %ecx			#%ecx = x * y_high32
+7.		movl	%edx, %ebx			#%ebx = x_high32
+8.		imull	%esi, %ebx			#%ebx = x_high32 * y_low32
+9.		addl	%ebx, %ecx			#%ecx = x * y_high32 + x_high32 * y_low32
+10.		mull	%esi				#R[%edx]:R[%eax] = R[%esi] * R[%eax]
+11.		leal	(%ecx, %eds), %edx	#%edx = %ecx + %edx
+12.		movl	8(%ebp), %ecx		#%ecx = dest
+13.		movl	%eax, (%ecx)		#*dest = prod_low32
+14		movl	%edx, 4(%ecx)		#*(dest+4) = prod_high32
